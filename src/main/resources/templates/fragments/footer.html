@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<footer th:fragment="footer" class="custom-footer mt-auto">
+    <div class="container">
+        <div class="row align-items-center gy-3">
+            <div class="col-md-6 text-center text-md-start">
+                <div class="fw-semibold text-dark mb-1">
+                    <i class="bi bi-patch-check-fill text-primary"></i> CertVerify
+                </div>
+                <p class="mb-0 text-muted small">
+                    Digital Certificate Issuance &amp; Public Verification System. Built with Spring Boot &amp; Thymeleaf.
+                </p>
+            </div>
+            <div class="col-md-6 text-center text-md-end">
+                <div class="d-inline-flex gap-3 small">
+                    <a th:href="@{/dashboard}" class="text-muted text-decoration-none">Dashboard</a>
+                    <a th:href="@{/certificates}" class="text-muted text-decoration-none">Certificates</a>
+                    <a th:href="@{/verify}" class="text-primary text-decoration-none fw-semibold">Public Verification</a>
+                </div>
+                <div class="text-muted small mt-1">
+                    &copy; 2026 CertVerify Portal. All rights reserved.
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

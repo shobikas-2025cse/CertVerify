@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CertVerify — Issue Certificate</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<!-- Navigation -->
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="py-4">
+    <div class="container">
+
+        <!-- Flash Alerts -->
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+        <!-- Breadcrumb & Header -->
+        <div class="mb-4">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1 small text-muted">
+                    <li class="breadcrumb-item"><a th:href="@{/dashboard}" class="text-decoration-none">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a th:href="@{/certificates}" class="text-decoration-none">Certificates</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Issue Certificate</li>
+                </ol>
+            </nav>
+            <h1 class="h3 fw-bold mb-0 text-dark">Issue New Certificate</h1>
+            <p class="text-muted small">Select a registered participant and course to generate a unique digital credential.</p>
+        </div>
+
+        <!-- Success Result Card (Shown immediately upon successful issuance) -->
+        <div th:if="${issuedCertificate}" class="row justify-content-center mb-5">
+            <div class="col-lg-8">
+                <div class="custom-card border-success shadow-lg">
+                    <div class="custom-card-header bg-success-subtle text-success py-3">
+                        <h5 class="text-success mb-0">
+                            <i class="bi bi-patch-check-fill fs-4 text-success me-2"></i> Certificate Issued Successfully
+                        </h5>
+                    </div>
+                    <div class="custom-card-body p-4">
+                        <div class="row g-3 mb-4">
+                            <div class="col-sm-6">
+                                <div class="text-muted small">Certificate ID</div>
+                                <div class="fw-bold fs-5 text-dark" th:text="'#' + ${issuedCertificate.id}">#1</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="text-muted small">Verification Code</div>
+                                <div class="d-flex align-items-center gap-2 mt-1">
+                                    <span class="code-pill fs-5 text-primary fw-bold" th:text="${issuedCertificate.verificationCode}">80D8C70D1C77</span>
+                                    <button class="btn btn-sm btn-outline-secondary py-1 px-2"
+                                            type="button"
+                                            th:data-code="${issuedCertificate.verificationCode}"
+                                            onclick="copyToClipboard(this.getAttribute('data-code'), this)">
+                                        <i class="bi bi-clipboard"></i> Copy
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="text-muted small">Recipient / Holder</div>
+                                <div class="fw-bold text-dark fs-6" th:text="${issuedCertificate.participant.name}">Arun Kumar</div>
+                                <div class="text-muted small" th:text="${issuedCertificate.participant.email}">arun@gmail.com</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="text-muted small">Course / Event</div>
+                                <div class="fw-bold text-dark fs-6" th:text="${issuedCertificate.course.courseName}">Java Full Stack Development</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="text-muted small">Issue Date</div>
+                                <div class="fw-semibold text-dark" th:text="${issuedCertificate.issueDate}">2026-09-28</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="text-muted small">Status</div>
+                                <div>
+                                    <span class="status-badge active">
+                                        <i class="bi bi-check-circle-fill"></i> ACTIVE
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex flex-wrap gap-2 pt-3 border-top">
+                            <a th:href="@{'/certificates/' + ${issuedCertificate.id}}" class="btn btn-primary d-inline-flex align-items-center gap-1">
+                                <i class="bi bi-eye"></i> View Certificate
+                            </a>
+                            <a th:href="@{'/verify/result?code=' + ${issuedCertificate.verificationCode}}" class="btn btn-outline-success d-inline-flex align-items-center gap-1">
+                                <i class="bi bi-shield-check"></i> Verify Certificate
+                            </a>
+                            <a th:href="@{/certificates}" class="btn btn-outline-secondary">
+                                Back to Certificates
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Issue Certificate Form Card -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="custom-card">
+                    <div class="custom-card-header">
+                        <h5>
+                            <i class="bi bi-file-earmark-plus text-primary"></i> Issuance Details
+                        </h5>
+                    </div>
+                    <div class="custom-card-body p-4">
+
+                        <!-- Check if participants or courses are empty -->
+                        <div th:if="${#lists.isEmpty(participants) or #lists.isEmpty(courses)}" class="alert alert-warning d-flex align-items-center gap-2 mb-4">
+                            <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                            <div>
+                                Before issuing a certificate, please ensure you have registered at least one
+                                <a th:if="${#lists.isEmpty(participants)}" th:href="@{/participants/new}" class="alert-link">participant</a>
+                                <span th:if="${#lists.isEmpty(participants) and #lists.isEmpty(courses)}">and</span>
+                                <a th:if="${#lists.isEmpty(courses)}" th:href="@{/courses/new}" class="alert-link">course</a>.
+                            </div>
+                        </div>
+
+                        <form th:action="@{/certificates/issue}"
+                              th:object="${request}"
+                              method="post"
+                              data-loading>
+
+                            <!-- Select Participant Dropdown -->
+                            <div class="mb-4">
+                                <label for="participantId" class="form-label fw-semibold">
+                                    Select Participant <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select form-select-lg"
+                                        id="participantId"
+                                        th:field="*{participantId}"
+                                        th:classappend="${#fields.hasErrors('participantId') ? 'is-invalid' : ''}"
+                                        required>
+                                    <option value="" disabled selected>-- Select Participant --</option>
+                                    <option th:each="p : ${participants}"
+                                            th:value="${p.id}"
+                                            th:text="${p.name + ' (' + p.email + ')'}">Arun Kumar (arun@gmail.com)</option>
+                                </select>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('participantId')}" th:errors="*{participantId}">
+                                    Participant ID is required
+                                </div>
+                                <div class="form-text small text-muted">
+                                    Participant who successfully completed the program.
+                                </div>
+                            </div>
+
+                            <!-- Select Course Dropdown -->
+                            <div class="mb-4">
+                                <label for="courseId" class="form-label fw-semibold">
+                                    Select Course / Event <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select form-select-lg"
+                                        id="courseId"
+                                        th:field="*{courseId}"
+                                        th:classappend="${#fields.hasErrors('courseId') ? 'is-invalid' : ''}"
+                                        required>
+                                    <option value="" disabled selected>-- Select Course --</option>
+                                    <option th:each="c : ${courses}"
+                                            th:value="${c.id}"
+                                            th:text="${c.courseName}">Java Full Stack Development</option>
+                                </select>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('courseId')}" th:errors="*{courseId}">
+                                    Course ID is required
+                                </div>
+                                <div class="form-text small text-muted">
+                                    The academic curriculum or event for which this credential is awarded.
+                                </div>
+                            </div>
+
+                            <!-- Informative Box -->
+                            <div class="bg-light p-3 rounded-3 mb-4 border">
+                                <div class="d-flex align-items-center gap-2 small text-muted">
+                                    <i class="bi bi-info-circle text-primary"></i>
+                                    <span>A 12-character unique verification code will be cryptographically generated upon submission.</span>
+                                </div>
+                            </div>
+
+                            <!-- Buttons -->
+                            <div class="d-flex align-items-center gap-2 pt-2 border-top">
+                                <button type="submit"
+                                        class="btn btn-primary px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2"
+                                        th:disabled="${#lists.isEmpty(participants) or #lists.isEmpty(courses)}">
+                                    <i class="bi bi-patch-check"></i> Issue Certificate
+                                </button>
+                                <a th:href="@{/certificates}" class="btn btn-outline-secondary px-3 py-2">Cancel</a>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- Footer -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Custom JS -->
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

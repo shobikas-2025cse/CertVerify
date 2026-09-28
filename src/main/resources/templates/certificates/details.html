@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'CertVerify — Certificate #' + ${certificate.id}">CertVerify — Certificate Details</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cinzel:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<!-- Navigation -->
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="py-4">
+    <div class="container">
+
+        <!-- Flash Alerts -->
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+        <!-- Breadcrumb & Actions Bar (no-print) -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2 no-print">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1 small text-muted">
+                        <li class="breadcrumb-item"><a th:href="@{/dashboard}" class="text-decoration-none">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a th:href="@{/certificates}" class="text-decoration-none">Certificates</a></li>
+                        <li class="breadcrumb-item active" aria-current="page" th:text="'Certificate #' + ${certificate.id}">#1</li>
+                    </ol>
+                </nav>
+                <h1 class="h3 fw-bold mb-0 text-dark">Certificate Details</h1>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1" onclick="window.print();">
+                    <i class="bi bi-printer"></i> Print / Save
+                </button>
+                <a th:href="@{'/verify/result?code=' + ${certificate.verificationCode}}" class="btn btn-outline-success d-inline-flex align-items-center gap-1">
+                    <i class="bi bi-shield-check"></i> Verify Authenticity
+                </a>
+                <form th:if="${certificate.status == 'ACTIVE'}"
+                      th:action="@{'/certificates/' + ${certificate.id} + '/revoke'}"
+                      method="post"
+                      class="d-inline"
+                      onsubmit="return confirm('Are you sure you want to REVOKE this certificate? This action cannot be undone.');">
+                    <button type="submit" class="btn btn-outline-danger d-inline-flex align-items-center gap-1">
+                        <i class="bi bi-slash-circle"></i> Revoke
+                    </button>
+                </form>
+                <a th:href="@{/certificates}" class="btn btn-secondary">
+                    Back to List
+                </a>
+            </div>
+        </div>
+
+        <!-- Formal Academic Certificate Card Frame -->
+        <div class="certificate-frame text-center my-3 position-relative">
+
+            <!-- Revoked Stamp Watermark if Revoked -->
+            <div th:if="${certificate.status == 'REVOKED'}" class="certificate-stamp-revoked">
+                REVOKED
+            </div>
+
+            <!-- Certificate Header -->
+            <div class="mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center gap-2 mb-2">
+                    <i class="bi bi-patch-check-fill text-primary fs-2"></i>
+                    <span class="fs-4 fw-bold letter-spacing-1 text-dark">CERTVERIFY</span>
+                </div>
+                <div class="certificate-header-title">DIGITAL CERTIFICATE OF COMPLETION</div>
+                <div class="certificate-sub-title">This credential is formally awarded to</div>
+            </div>
+
+            <!-- Recipient Name -->
+            <div class="my-3">
+                <div class="certificate-recipient-name" th:text="${certificate.participant.name}">
+                    Arun Kumar
+                </div>
+                <div class="text-muted small">
+                    Registered ID: <span th:text="${certificate.participant.email}">arun@gmail.com</span>
+                </div>
+            </div>
+
+            <!-- Course Description Statement -->
+            <div class="my-4 px-md-5">
+                <p class="text-muted mb-1">
+                    for the successful completion and mastery of requirements in the institutional program:
+                </p>
+                <div class="certificate-course-title" th:text="${certificate.course.courseName}">
+                    Java Full Stack Development
+                </div>
+                <p class="text-muted small" th:if="${certificate.course.description != null}" th:text="${certificate.course.description}">
+                    Spring Boot and REST API Development
+                </p>
+            </div>
+
+            <hr class="my-4" style="border-top: 1px solid #cbd5e1; width: 85%; margin-left: auto; margin-right: auto;">
+
+            <!-- Certificate Metadata Details (Bottom Grid) -->
+            <div class="row align-items-center text-start px-md-4 py-2 gy-3">
+                <!-- Certificate ID & Code -->
+                <div class="col-md-4 text-center text-md-start">
+                    <div class="small text-muted text-uppercase fw-semibold">Certificate ID</div>
+                    <div class="fw-bold text-dark fs-6" th:text="'CERT-' + ${certificate.id}">CERT-1</div>
+
+                    <div class="small text-muted text-uppercase fw-semibold mt-2">Verification Code</div>
+                    <div class="code-pill d-inline-block text-primary fw-bold" th:text="${certificate.verificationCode}">
+                        80D8C70D1C77
+                    </div>
+                </div>
+
+                <!-- Academic Seal -->
+                <div class="col-md-4 text-center">
+                    <div class="certificate-seal">
+                        <i class="bi bi-award-fill fs-3 mb-1"></i>
+                        <span>VERIFIED<br>CREDENTIAL</span>
+                    </div>
+                    <div class="small text-muted mt-2">
+                        Issued: <span class="fw-semibold text-dark" th:text="${certificate.issueDate}">2026-09-28</span>
+                    </div>
+                </div>
+
+                <!-- Status & QR Code Placeholder -->
+                <div class="col-md-4 text-center text-md-end">
+                    <div class="small text-muted text-uppercase fw-semibold">Credential Status</div>
+                    <div class="mt-1">
+                        <span th:if="${certificate.status == 'ACTIVE'}" class="status-badge active fs-6">
+                            <i class="bi bi-check-circle-fill"></i> Certificate Active
+                        </span>
+                        <span th:if="${certificate.status == 'REVOKED'}" class="status-badge revoked fs-6">
+                            <i class="bi bi-x-circle-fill"></i> Certificate Revoked
+                        </span>
+                    </div>
+
+                    <!-- Clean SVG QR Code-like visual element -->
+                    <div class="mt-2 d-inline-block p-1 bg-white border rounded">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="48" height="48" fill="white"/>
+                            <!-- Top Left Finder -->
+                            <rect x="4" y="4" width="16" height="16" stroke="#1e293b" stroke-width="2"/>
+                            <rect x="8" y="8" width="8" height="8" fill="#1e293b"/>
+                            <!-- Top Right Finder -->
+                            <rect x="28" y="4" width="16" height="16" stroke="#1e293b" stroke-width="2"/>
+                            <rect x="32" y="8" width="8" height="8" fill="#1e293b"/>
+                            <!-- Bottom Left Finder -->
+                            <rect x="4" y="28" width="16" height="16" stroke="#1e293b" stroke-width="2"/>
+                            <rect x="8" y="32" width="8" height="8" fill="#1e293b"/>
+                            <!-- Inner data dots -->
+                            <rect x="24" y="24" width="4" height="4" fill="#2563eb"/>
+                            <rect x="32" y="28" width="6" height="4" fill="#1e293b"/>
+                            <rect x="24" y="36" width="4" height="8" fill="#1e293b"/>
+                            <rect x="32" y="36" width="10" height="4" fill="#1e293b"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer verification note inside certificate -->
+            <div class="mt-4 pt-3 border-top small text-muted text-center" style="font-size: 0.78rem;">
+                This certificate authenticity can be independently verified at <code>http://localhost:8080/verify</code> using verification code: <strong th:text="${certificate.verificationCode}">CODE</strong>
+            </div>
+
+        </div>
+
+    </div>
+</main>
+
+<!-- Footer -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Custom JS -->
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>
