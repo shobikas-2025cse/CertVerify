@@ -11,7 +11,7 @@ Institutions and academic organizations issue course or event completion certifi
 ---
 
 ## 3. Technologies Used
-- **Backend Framework:** Spring Boot 3.4.x (Java 17/21)
+- **Backend Framework:** Spring Boot 4.1.1x (Java 17/21)
 - **Data Persistence:** Spring Data JPA / Hibernate
 - **Database:** MySQL 8.x
 - **Bean Validation:** Jakarta Validation (`@Valid`, `@NotNull`, `@NotBlank`, `@Email`)
